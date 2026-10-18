@@ -5,7 +5,7 @@
 
 
 @doc Markdown.doc"""
-   Engine(; name, T_max)
+   Engine(; name, theta_e, tau_e, T_max)
 
 short Engine component description
 
@@ -13,15 +13,17 @@ short Engine component description
 
 | Name         | Description                         | Units  |   Default value |
 | ------------ | ----------------------------------- | ------ | --------------- |
-| `T_max`         |                          | --  |   190 |
+| `theta_e`         |                          | --  |   0.3 |
+| `tau_e`         |                          | --  |   0.3 |
+| `T_max`         |                          | --  |   150 |
 
 ## Connectors
 
- * `realinput` - This connector represents a real signal as an input to a component ([`RealInput`](@ref))
+ * `tau_cmd` - This connector represents a real signal as an input to a component ([`RealInput`](@ref))
  * `spline` - This connector represents a rotational spline with angle and torque as the potential and flow variables, respectively. ([`Spline`](@ref))
- * `spline1` - This connector represents a rotational spline with angle and torque as the potential and flow variables, respectively. ([`Spline`](@ref))
+ * `support` - This connector represents a rotational spline with angle and torque as the potential and flow variables, respectively. ([`Spline`](@ref))
 """
-@component function Engine(; name = nothing, T_max=Float64(190), kwargs...)
+@component function Engine(; name = nothing, theta_e=0.3, tau_e=0.3, T_max=Float64(150), kwargs...)
   isnothing(name) && throw(ArgumentError("""
     The `name` keyword must be provided. Please consider using the `@named` macro,
     like so:
@@ -52,6 +54,12 @@ short Engine component description
   ### Deferred assignment (default values that depend on final parameters)
 
   ### Symbolic Parameters
+  __local__theta_e = theta_e
+  append!(__params, @parameters (theta_e::Real))
+  __initial_conditions[theta_e] = __local__theta_e
+  __local__tau_e = tau_e
+  append!(__params, @parameters (tau_e::Real))
+  __initial_conditions[tau_e] = __local__tau_e
   __local__T_max = T_max
   append!(__params, @parameters (T_max::Real))
   __initial_conditions[T_max] = __local__T_max
@@ -59,7 +67,7 @@ short Engine component description
   ### Final Parameters (assignments)
 
   ### Final Path Parameters
-  append!(__vars, @variables (realinput(t)::Real), [input = true])
+  append!(__vars, @variables (tau_cmd(t)::Real), [input = true])
 
   ### Variables (declarations)
 
@@ -70,19 +78,19 @@ short Engine component description
 
   ### Components
   push!(__systems, @named spline = __Dyad__Spline())
-  push!(__systems, @named spline1 = __Dyad__Spline())
-  # Subcomponent padedelay of type BlockComponents.Nonlinear.PadeDelay
-  padedelay_overrides = __pop_subcomponent_overrides!(__overrides, "padedelay")
-  push!(__systems, @named padedelay = BlockComponents.Nonlinear.PadeDelay(; padedelay_overrides...))
-  # Subcomponent firstorder of type BlockComponents.Continuous.FirstOrder
-  firstorder_overrides = __pop_subcomponent_overrides!(__overrides, "firstorder")
-  push!(__systems, @named firstorder = BlockComponents.Continuous.FirstOrder(; firstorder_overrides...))
+  push!(__systems, @named support = __Dyad__Spline())
   # Subcomponent limiter of type BlockComponents.Nonlinear.Limiter
   limiter_overrides = __pop_subcomponent_overrides!(__overrides, "limiter")
-  push!(__systems, @named limiter = BlockComponents.Nonlinear.Limiter(; limiter_overrides...))
-  # Subcomponent torquesource of type RotationalComponents.Sources.TorqueSource
-  torquesource_overrides = __pop_subcomponent_overrides!(__overrides, "torquesource")
-  push!(__systems, @named torquesource = RotationalComponents.Sources.TorqueSource(; torquesource_overrides...))
+  push!(__systems, @named limiter = BlockComponents.Nonlinear.Limiter(; y_max=T_max, y_min=Float64(0), limiter_overrides...))
+  # Subcomponent delay of type BlockComponents.Nonlinear.PadeDelay
+  delay_overrides = __pop_subcomponent_overrides!(__overrides, "delay")
+  push!(__systems, @named delay = BlockComponents.Nonlinear.PadeDelay(; n=6, m=5, delayTime=0.3, delay_overrides...))
+  # Subcomponent lag of type BlockComponents.Continuous.FirstOrder
+  lag_overrides = __pop_subcomponent_overrides!(__overrides, "lag")
+  push!(__systems, @named lag = BlockComponents.Continuous.FirstOrder(; T=tau_e, lag_overrides...))
+  # Subcomponent torque of type RotationalComponents.Sources.TorqueSource
+  torque_overrides = __pop_subcomponent_overrides!(__overrides, "torque")
+  push!(__systems, @named torque = RotationalComponents.Sources.TorqueSource(; torque_overrides...))
 
   ### Check there are no unmatched overrides
   isempty(__overrides) || throw(ArgumentError("overrides: [$(join(keys(__overrides), ", "))] don't match names found in model. These names may exist in the model but could have been conditionally excluded."))
@@ -95,12 +103,12 @@ short Engine component description
   __assertions = []
 
   ### Equations
-  push!(__eqs, connect(padedelay.u, realinput))
-  push!(__eqs, connect(padedelay.y, firstorder.u))
-  push!(__eqs, connect(torquesource.spline, spline))
-  push!(__eqs, connect(torquesource.support, spline1))
-  push!(__eqs, connect(firstorder.y, limiter.u))
-  push!(__eqs, connect(limiter.y, torquesource.tau))
+  push!(__eqs, connect(delay.u, tau_cmd))
+  push!(__eqs, connect(delay.y, lag.u))
+  push!(__eqs, connect(lag.y, limiter.u))
+  push!(__eqs, connect(limiter.y, torque.tau))
+  push!(__eqs, connect(torque.support, support))
+  push!(__eqs, connect(torque.spline, spline))
 
   # Return completely constructed System
   return System(__eqs, t, __vars, __params; systems=__systems, initial_conditions=__initial_conditions, guesses=__guesses, name, initialization_eqs=__initialization_eqs, bindings=__bindings, assertions=__assertions)
