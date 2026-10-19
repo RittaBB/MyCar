@@ -1,0 +1,72 @@
+"short Engine component description"
+component Engine
+  limiter = BlockComponents.Nonlinear.Limiter(y_max = T_max, y_min = 0) {^limiter}
+  tau_cmd = Dyad.RealInput() {^tau_cmd}
+  delay = BlockComponents.Nonlinear.PadeDelay(n = 6, m = 5, delayTime = 0.3) {^delay}
+  lag = BlockComponents.Continuous.FirstOrder(T = tau_e) {^lag}
+  torque = RotationalComponents.Sources.TorqueSource() {^torque}
+  parameter theta_e::Real() = 0.3
+  parameter tau_e::Real() = 0.3
+  parameter T_max::Real() = 150
+  spline = Dyad.Spline() {^spline}
+  support = Dyad.Spline() {^support}
+relations
+  connect(delay.u, tau_cmd) {^id8}
+  connect(lag.u, delay.y) {^id9}
+  connect(limiter.u, lag.y) {^id10}
+  connect(limiter.y, torque.tau) {^id11}
+  connect(torque.support, support) {^id12}
+  connect(torque.spline, spline) {^id13}
+metadata {
+  "Dyad": {
+    "experiments": {},
+    "tests": {},
+    "labels": [
+      {
+        "label": "$(instance)",
+        "x": 500,
+        "y": 1100,
+        "rot": 0,
+        "layer": "icon",
+        "attrs": {}
+      }
+    ],
+    "icons": {"default": "dyad://Dyad/Default.svg"},
+    "path": {},
+    "doc": {"behavior": true},
+    "deprecated": null,
+    "panel": {}
+  },
+  "_links": {
+    "limiter": {
+      "Dyad": {"placement": {"diagram": {"x1": 530, "x2": 630, "y1": 450, "y2": 550}}}
+    },
+    "tau_cmd": {
+      "Dyad": {"placement": {"diagram": {"x1": -30, "x2": 50, "y1": 460, "y2": 540}}}
+    },
+    "delay": {
+      "Dyad": {"placement": {"diagram": {"x1": 140, "x2": 240, "y1": 450, "y2": 550}}}
+    },
+    "lag": {
+      "Dyad": {"placement": {"diagram": {"x1": 330, "x2": 430, "y1": 450, "y2": 550}}}
+    },
+    "torque": {
+      "Dyad": {"placement": {"diagram": {"x1": 730, "x2": 830, "y1": 450, "y2": 550}}}
+    },
+    "spline": {
+      "Dyad": {"placement": {"diagram": {"x1": 960, "x2": 1040, "y1": 460, "y2": 540}}}
+    },
+    "support": {
+      "Dyad": {"placement": {"diagram": {"x1": 460, "x2": 540, "y1": 970, "y2": 1050}}}
+    },
+    "id8": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id9": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id10": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id11": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id12": {
+      "Dyad": {"edges": [{"S": 1, "M": [{"x": 780, "y": 1010}], "E": 2}], "path": {}}
+    },
+    "id13": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}}
+  }
+}
+end

@@ -1,0 +1,44 @@
+"""
+A road wheel whose tire grips through slip: the shaft and the body move at different speeds, and
+the friction curve turns the difference into traction.
+
+`F_z` is the load on the one driven axle, about half the car's weight. `mu_scale` scales the
+curve for the road: 1 on a dry road, 0.2 on a slippery one.
+"""
+component SlipWheel1D
+  "Wheel shaft"
+  spline = Spline()
+  "Contact with the body"
+  flange = Flange()
+  "Road-friction multiplier"
+  mu_scale = RealInput()
+  curve = TireFrictionCurve()
+  "Wheel rolling radius"
+  parameter radius::Length = 0.31
+  "Normal load on the driven axle"
+  parameter F_z::Force = 6864.655
+  "Speed below which slip is measured against v_eps instead of v"
+  parameter v_eps::Velocity = 0.5
+  "Wheel angular speed"
+  variable omega::AngularVelocity
+  "Vehicle speed"
+  variable v::Velocity
+  "Longitudinal slip ratio"
+  variable kappa::Real
+  "Friction coefficient after road scaling"
+  variable mu::Real
+  "Longitudinal tire force"
+  variable F_x::Force
+relations
+  omega = der(spline.phi)
+  v = der(flange.s)
+  # At standstill v = 0 and the slip ratio is undefined; the floor keeps it finite.
+  kappa = (omega * radius - v) / max(abs(v), v_eps)
+  curve.kappa = kappa
+  mu = mu_scale * curve.mu
+  F_x = mu * F_z
+  # Flow is positive into the component: the tire pushes the body forward with F_x, so the
+  # flange reports -F_x, and the shaft feels the matching reaction torque.
+  flange.f = -F_x
+  0 = spline.tau + radius * flange.f
+end
