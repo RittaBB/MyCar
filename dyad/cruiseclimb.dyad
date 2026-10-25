@@ -1,0 +1,58 @@
+component CruiseClimb
+  controller = MyCar.CruiseController(xd0 = -130) {^controller}
+  plant = MyCar.GradeCar() {^plant}
+  demand = BlockComponents.Sources.Constant(k = 130) {^demand}
+  road = BlockComponents.Sources.Pulse(amplitude = 0.10, offset = 0, start_time = 30, duty_cycle = 1, period = 120) {^road}
+relations
+  connect(plant.v_kmh, controller.u_m) {^id5}
+  connect(controller.y, plant.tau_cmd) {^id6}
+  initial plant.body.mass.s = 0
+  initial plant.body.mass.v = 130 / 3.6
+  initial plant.engine.lag.x = 58.42
+  connect(demand.y, controller.u_s) {^id7}
+  connect(road.y, plant.grade) {^id8}
+metadata {
+  "_links": {
+    "controller": {
+      "Dyad": {"placement": {"diagram": {"x1": 160, "x2": 260, "y1": 110, "y2": 210}}}
+    },
+    "plant": {
+      "Dyad": {"placement": {"diagram": {"x1": 410, "x2": 510, "y1": 130, "y2": 230}}}
+    },
+    "demand": {"Dyad": {"placement": {"diagram": {"x1": 0, "x2": 100, "y1": 130, "y2": 230}}}},
+    "road": {
+      "Dyad": {"placement": {"diagram": {"x1": 250, "x2": 350, "y1": 280, "y2": 380}}}
+    },
+    "id5": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [{"x": 520, "y": 180}, {"x": 520, "y": 480}, {"x": 173, "y": 480}],
+            "E": 2
+          }
+        ],
+        "path": {}
+      }
+    },
+    "id6": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 390, "y": 161}, {"x": 390, "y": 180}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id7": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 133, "y": 180}, {"x": 133, "y": 155}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id8": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 383.5, "y": 330}, {"x": 383.5, "y": 221}], "E": 2}],
+        "path": {}
+      }
+    }
+  }
+}
+end
