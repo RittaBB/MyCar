@@ -1,0 +1,31 @@
+analysis MapEngineDynoTransient
+  extends TransientAnalysis(stop = 2.0, saveat = 0.001)
+  parameter rpm::Real = 3080.0
+  parameter pedal_initial::Real = 0.1034
+  parameter pedal_final::Real = 0.12
+  parameter t_step::Time = 1.0
+  parameter p_m0::Pressure = 47829.1
+  model = MapEngineDyno(rpm = rpm, pedal_initial = pedal_initial, pedal_final = pedal_final, t_step = t_step, p_m0 = p_m0)
+relations
+metadata {
+  "Dyad": {
+    "experiments": {},
+    "tests": {},
+    "labels": [
+      {
+        "label": "$(instance)",
+        "x": 500,
+        "y": 1100,
+        "rot": 0,
+        "layer": "icon",
+        "attrs": {}
+      }
+    ],
+    "icons": {"default": "dyad://Dyad/Default.svg"},
+    "path": {},
+    "doc": {"behavior": true},
+    "deprecated": null,
+    "panel": {}
+  }
+}
+end
