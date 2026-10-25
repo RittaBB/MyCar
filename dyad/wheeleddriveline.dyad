@@ -1,0 +1,78 @@
+"""
+The driveline of step 3 with a road wheel that has inertia. The wheel still rolls without slip.
+"""
+component WheeledDriveline
+  "From the engine"
+  spline = Spline()
+  "Gearbox housing"
+  support_r = Spline()
+  "To the body"
+  flange = Flange()
+  "Road"
+  support_t = Flange()
+  gear = RotationalComponents.Components.IdealGear(ratio = i)
+  "Road wheel and tire, about 20 kg mostly between 0.2 and 0.3 m radius"
+  inertia = RotationalComponents.Components.Inertia(J = J_w)
+  wheel = RotationalComponents.Components.IdealRollingWheel(radius = r)
+  "Gear ratio"
+  parameter i::Real = 4.0
+  "Road wheel and tire inertia"
+  parameter J_w::MomentOfInertia = 1.0
+  "Wheel rolling radius"
+  parameter r::Length = 0.31
+relations
+  connect(spline, gear.spline_a)
+  connect(gear.spline_b, inertia.spline_a)
+  connect(inertia.spline_b, wheel.spline)
+  connect(wheel.flange, flange)
+  connect(gear.support, support_r)
+  connect(wheel.support_r, support_r)
+  connect(wheel.support_t, support_t)
+end
+
+"""
+The car of step 5 with a wheel that has inertia.
+"""
+component WheeledCar
+  "Commanded engine torque"
+  tau_cmd = RealInput()
+  "Vehicle speed in km/h"
+  v_kmh = RealOutput()
+  engine = Engine()
+  driveline = WheeledDriveline()
+  body = Body()
+  vsensor = TranslationalComponents.Sensors.VelocitySensor()
+  to_kmh = BlockComponents.Math.Gain(k = 3.6)
+  "Engine mounts and gearbox housing"
+  rot_ground = RotationalComponents.Components.Fixed()
+  "Road under the wheel"
+  trans_ground = TranslationalComponents.Components.Fixed()
+relations
+  connect(tau_cmd, engine.tau_cmd)
+  connect(engine.spline, driveline.spline)
+  connect(engine.support, rot_ground.spline)
+  connect(driveline.support_r, rot_ground.spline)
+  connect(driveline.flange, body.flange)
+  connect(driveline.support_t, trans_ground.flange)
+  connect(vsensor.flange, body.flange)
+  connect(vsensor.v, to_kmh.u)
+  connect(to_kmh.y, v_kmh)
+end
+
+"""Full throttle from rest on a flat road, with wheel inertia."""
+component WheeledCarFullThrottle
+  "Full throttle: the engine's 150 N·m ceiling"
+  cmd = BlockComponents.Sources.Constant(k = 150)
+  car = WheeledCar()
+relations
+  connect(cmd.y, car.tau_cmd)
+  initial car.body.mass.s = 0
+  initial car.body.mass.v = 0
+  initial car.engine.lag.x = 0
+  initial car.driveline.inertia.phi = 0
+end
+
+analysis WheeledCarFullThrottleTransient
+  extends TransientAnalysis(stop = 300)
+  model = WheeledCarFullThrottle()
+end

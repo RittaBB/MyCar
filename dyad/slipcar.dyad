@@ -1,0 +1,78 @@
+"""
+The car with a slipping wheel and a road gradient. Body speed and wheel surface speed are both
+reported in km/h, so wheelspin shows as the gap between them.
+"""
+component SlipCar
+  "Commanded engine torque"
+  tau_cmd = RealInput()
+  "Road gradient, tan(alpha)"
+  grade = RealInput()
+  "Road-friction multiplier"
+  mu_scale = RealInput()
+  "Vehicle speed in km/h"
+  v_kmh = RealOutput()
+  "Wheel surface speed, omega * radius, in km/h"
+  wheel_kmh = RealOutput()
+  engine = Engine()
+  gear = RotationalComponents.Components.IdealGear(ratio = i)
+  wheel_inertia = RotationalComponents.Components.Inertia(J = J_w)
+  wheel = SlipWheel1D(radius = r, F_z = m * g / 2)
+  body = GradeBody(m = m, g = g)
+  vsensor = TranslationalComponents.Sensors.VelocitySensor()
+  to_kmh = BlockComponents.Math.Gain(k = 3.6)
+  wsensor = RotationalComponents.Sensors.VelocitySensor()
+  wheel_to_kmh = BlockComponents.Math.Gain(k = r * 3.6)
+  "Engine mounts and gearbox housing"
+  rot_ground = RotationalComponents.Components.Fixed()
+  "Gear ratio"
+  parameter i::Real = 4.0
+  "Road wheel and tire inertia"
+  parameter J_w::MomentOfInertia = 1.0
+  "Wheel rolling radius, shared by the tire and the wheel-speed gain"
+  parameter r::Length = 0.31
+  "Vehicle mass; the driven axle carries half of it"
+  parameter m::Dyad.Mass = 1400
+  "Gravitational acceleration"
+  parameter g::Acceleration = 9.80665
+relations
+  connect(tau_cmd, engine.tau_cmd)
+  connect(engine.spline, gear.spline_a)
+  connect(gear.spline_b, wheel_inertia.spline_a)
+  connect(wheel_inertia.spline_b, wheel.spline)
+  connect(engine.support, rot_ground.spline)
+  connect(gear.support, rot_ground.spline)
+  connect(wheel.flange, body.flange)
+  connect(grade, body.grade)
+  connect(mu_scale, wheel.mu_scale)
+  connect(vsensor.flange, wheel.flange)
+  connect(vsensor.v, to_kmh.u)
+  connect(to_kmh.y, v_kmh)
+  connect(wsensor.spline, wheel.spline)
+  connect(wsensor.w, wheel_to_kmh.u)
+  connect(wheel_to_kmh.y, wheel_kmh)
+end
+
+"""Full throttle from rest on a slippery flat road: the wheel spins up, the car barely moves."""
+component SlipCarStandingStart
+  "Full throttle"
+  cmd = BlockComponents.Sources.Constant(k = 150)
+  "Flat road"
+  road = BlockComponents.Sources.Constant(k = 0)
+  "Slippery road; 1.0 is dry"
+  friction = BlockComponents.Sources.Constant(k = 0.2)
+  car = SlipCar()
+relations
+  connect(cmd.y, car.tau_cmd)
+  connect(road.y, car.grade)
+  connect(friction.y, car.mu_scale)
+  initial car.body.mass.s = 0
+  initial car.body.mass.v = 0
+  initial car.engine.lag.x = 0
+  initial car.wheel_inertia.phi = 0
+  initial car.wheel_inertia.w = 0
+end
+
+analysis SlipCarStandingStartTransient
+  extends TransientAnalysis(stop = 5)
+  model = SlipCarStandingStart()
+end

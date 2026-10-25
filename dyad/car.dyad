@@ -1,0 +1,107 @@
+"short Car component description"
+component Car
+  engine = MyCar.Engine() {^engine}
+  driveline = MyCar.Driveline() {^driveline}
+  body = MyCar.Body() {^body}
+  tau_cmd = Dyad.RealInput() {^tau_cmd}
+  v_kmh = Dyad.RealOutput() {^v_kmh}
+  vsensor = TranslationalComponents.Sensors.VelocitySensor() {^vsensor}
+  to_kmh = BlockComponents.Math.Gain(k = 3.6) {^to_kmh}
+  rot_ground = RotationalComponents.Components.Fixed() {^rot_ground}
+  trans_ground = TranslationalComponents.Components.Fixed() {^trans_ground}
+relations
+  connect(engine.tau_cmd, tau_cmd) {^id10}
+  connect(engine.spline, driveline.spline) {^id11}
+  connect(driveline.flange, vsensor.flange, body.flange) {^id12}
+  connect(to_kmh.u, vsensor.v) {^id13}
+  connect(v_kmh, to_kmh.y) {^id14}
+  connect(trans_ground.flange, driveline.support_t) {^id15}
+  connect(rot_ground.spline, engine.support, driveline.support_r) {^id16}
+metadata {
+  "Dyad": {
+    "experiments": {},
+    "tests": {},
+    "labels": [
+      {
+        "label": "$(instance)",
+        "x": 500,
+        "y": 1100,
+        "rot": 0,
+        "layer": "icon",
+        "attrs": {}
+      }
+    ],
+    "icons": {"default": "dyad://Dyad/Default.svg"},
+    "path": {},
+    "doc": {"behavior": true},
+    "deprecated": null,
+    "panel": {}
+  },
+  "_links": {
+    "engine": {
+      "Dyad": {"placement": {"diagram": {"x1": 170, "x2": 270, "y1": 450, "y2": 550}}}
+    },
+    "driveline": {
+      "Dyad": {"placement": {"diagram": {"x1": 360, "x2": 460, "y1": 450, "y2": 550}}}
+    },
+    "body": {
+      "Dyad": {"placement": {"diagram": {"x1": 580, "x2": 680, "y1": 450, "y2": 550}}}
+    },
+    "tau_cmd": {
+      "Dyad": {"placement": {"diagram": {"x1": -20, "x2": 60, "y1": 460, "y2": 540}}}
+    },
+    "v_kmh": {
+      "Dyad": {"placement": {"diagram": {"x1": 980, "x2": 1060, "y1": 460, "y2": 540}}}
+    },
+    "vsensor": {
+      "Dyad": {"placement": {"diagram": {"x1": 570, "x2": 670, "y1": 200, "y2": 300}}}
+    },
+    "to_kmh": {
+      "Dyad": {"placement": {"diagram": {"x1": 800, "x2": 900, "y1": 200, "y2": 300}}}
+    },
+    "rot_ground": {
+      "Dyad": {"placement": {"diagram": {"x1": 170, "x2": 270, "y1": 670, "y2": 770}}}
+    },
+    "trans_ground": {
+      "Dyad": {"placement": {"diagram": {"x1": 380, "x2": 480, "y1": 750, "y2": 850}}}
+    },
+    "id10": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id11": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id12": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [{"x": 515.5, "y": 500}], "E": -1},
+          {"S": -1, "M": [{"x": 515.5, "y": 250}], "E": 2},
+          {"S": 3, "M": [{"x": 750, "y": 500}, {"x": 750, "y": 350}], "E": -1}
+        ],
+        "junctions": [{"x": 515.5, "y": 350}],
+        "path": {}
+      }
+    },
+    "id13": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id14": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 950, "y": 500}, {"x": 950, "y": 250}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id15": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 430, "y": 710}, {"x": 424, "y": 710}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id16": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [], "E": -1},
+          {"S": -1, "M": [], "E": 2},
+          {"S": 3, "M": [{"x": 401, "y": 630}], "E": -1}
+        ],
+        "junctions": [{"x": 220, "y": 630}],
+        "path": {}
+      }
+    }
+  }
+}
+end

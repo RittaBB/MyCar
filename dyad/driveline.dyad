@@ -1,0 +1,77 @@
+"short Driveline component description"
+component Driveline
+  flange = Dyad.Flange() {^flange}
+  spline = Dyad.Spline() {^spline}
+  gear = RotationalComponents.Components.IdealGear(ratio = i) {^gear}
+  wheel = RotationalComponents.Components.IdealRollingWheel(radius = r) {^wheel}
+  support_t = Dyad.Flange() {^support_t}
+  support_r = Dyad.Spline() {^support_r}
+  "Gear ratio"
+  parameter i::Real = 4.0
+  "Wheel rolling radius"
+  parameter r::Length = 0.31
+relations
+  connect(gear.spline_b, wheel.spline) {^id7}
+  connect(gear.spline_a, spline) {^id8}
+  connect(wheel.flange, flange) {^id9}
+  connect(wheel.support_t, support_t) {^id10}
+  connect(gear.support, support_r, wheel.support_r) {^id11}
+metadata {
+  "Dyad": {
+    "experiments": {},
+    "tests": {},
+    "labels": [
+      {
+        "label": "$(instance)",
+        "x": 500,
+        "y": 1100,
+        "rot": 0,
+        "layer": "icon",
+        "attrs": {}
+      }
+    ],
+    "icons": {"default": "dyad://Dyad/Default.svg"},
+    "path": {},
+    "doc": {"behavior": true},
+    "deprecated": null,
+    "panel": {}
+  },
+  "_links": {
+    "flange": {
+      "Dyad": {"placement": {"diagram": {"x1": 970, "x2": 1050, "y1": 460, "y2": 540}}}
+    },
+    "spline": {
+      "Dyad": {"placement": {"diagram": {"x1": -40, "x2": 40, "y1": 460, "y2": 540}}}
+    },
+    "gear": {
+      "Dyad": {"placement": {"diagram": {"x1": 360, "x2": 460, "y1": 450, "y2": 550}}}
+    },
+    "wheel": {
+      "Dyad": {"placement": {"diagram": {"x1": 560, "x2": 660, "y1": 450, "y2": 550}}}
+    },
+    "support_t": {
+      "Dyad": {"placement": {"diagram": {"x1": 600, "x2": 680, "y1": 960, "y2": 1040}}}
+    },
+    "support_r": {
+      "Dyad": {"placement": {"diagram": {"x1": 370, "x2": 450, "y1": 960, "y2": 1040}}}
+    },
+    "id7": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id8": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id9": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id10": {
+      "Dyad": {"edges": [{"S": 1, "M": [{"x": 645, "y": 1000}], "E": 2}], "path": {}}
+    },
+    "id11": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [], "E": -1},
+          {"S": -1, "M": [], "E": 2},
+          {"S": 3, "M": [{"x": 575, "y": 680}], "E": -1}
+        ],
+        "junctions": [{"x": 410, "y": 680}],
+        "path": {}
+      }
+    }
+  }
+}
+end
