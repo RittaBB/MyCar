@@ -52,27 +52,60 @@ relations
   connect(wheel_to_kmh.y, wheel_kmh)
 end
 
-"""Full throttle from rest on a slippery flat road: the wheel spins up, the car barely moves."""
+"Full throttle from rest on a slippery flat road: the wheel spins up, the car barely moves."
 component SlipCarStandingStart
   "Full throttle"
-  cmd = BlockComponents.Sources.Constant(k = 150)
+  cmd = BlockComponents.Sources.Constant(k = 150) {^cmd}
   "Flat road"
-  road = BlockComponents.Sources.Constant(k = 0)
+  road = BlockComponents.Sources.Constant(k = 0) {^road}
   "Slippery road; 1.0 is dry"
-  friction = BlockComponents.Sources.Constant(k = 0.2)
-  car = SlipCar()
+  friction = BlockComponents.Sources.Constant(k = 0.2) {^friction}
+  car = SlipCar() {^car}
 relations
-  connect(cmd.y, car.tau_cmd)
-  connect(road.y, car.grade)
-  connect(friction.y, car.mu_scale)
+  connect(cmd.y, car.tau_cmd) {^id5}
+  connect(road.y, car.grade) {^id6}
+  connect(friction.y, car.mu_scale) {^id7}
   initial car.body.mass.s = 0
   initial car.body.mass.v = 0
   initial car.engine.lag.x = 0
   initial car.wheel_inertia.phi = 0
   initial car.wheel_inertia.w = 0
+metadata {
+  "_links": {
+    "cmd": {
+      "Dyad": {"placement": {"diagram": {"x1": 20, "x2": 120, "y1": 260, "y2": 360}}}
+    },
+    "road": {
+      "Dyad": {"placement": {"diagram": {"x1": 20, "x2": 120, "y1": 130, "y2": 230}}}
+    },
+    "friction": {"Dyad": {"placement": {"diagram": {"x1": 20, "x2": 120, "y1": 20, "y2": 120}}}},
+    "car": {
+      "Dyad": {"placement": {"diagram": {"x1": 240, "x2": 340, "y1": 150, "y2": 250}}}
+    },
+    "id5": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 140, "y": 310}, {"x": 140, "y": 200}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id6": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 167.5, "y": 180}, {"x": 167.5, "y": 200}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id7": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 150, "y": 70}, {"x": 150, "y": 200}], "E": 2}],
+        "path": {}
+      }
+    }
+  }
+}
 end
 
 analysis SlipCarStandingStartTransient
   extends TransientAnalysis(stop = 5)
   model = SlipCarStandingStart()
+relations
 end

@@ -1,0 +1,26 @@
+component MappedCarWLTC
+  trace = VehicleSystemsComponents.Vehicle.DriveCycle()
+  driver = CruiseController(k = 0.14)
+  car = MappedCar()
+  pedal_limiter = BlockComponents.Nonlinear.Limiter(u_min = 0.0, u_max = 1.0)
+  brake_limiter = BlockComponents.Nonlinear.Limiter(u_min = -1.0, u_max = 0.0)
+  brake_gain = BlockComponents.Math.Gain(k = -4000.0)
+  fuel_L = BlockComponents.Continuous.Integrator(k = 1 / 3600)
+  dist_km = BlockComponents.Continuous.Integrator(k = 1 / 3600)
+relations
+  connect(trace.y, driver.u_s)
+  connect(car.v_kmh, driver.u_m)
+  connect(driver.y, pedal_limiter.u)
+  connect(pedal_limiter.y, car.pedal)
+  connect(driver.y, brake_limiter.u)
+  connect(brake_limiter.y, brake_gain.u)
+  connect(brake_gain.y, car.F_brake)
+  connect(car.fuel_lph, fuel_L.u)
+  connect(car.v_kmh, dist_km.u)
+  initial car.body.mass.s = 0
+  initial car.body.mass.v = 0
+  initial car.flywheel.w = 775 * pi / 30
+  initial car.flywheel.phi = 0
+  initial car.driveline.clutch.spline_b.phi = 0
+  initial car.engine.air.manifold.p = 33600
+end

@@ -1,0 +1,19 @@
+"Step test on your car: 90 km/h steady-state to 110 km/h step"
+component CarStepTest
+  cmd = BlockComponents.Sources.Step(offset = 31.078, height = 9.041, start_time = 50) {^cmd}
+  plant = Car() {^plant}
+relations
+  connect(cmd.y, plant.tau_cmd) {^id3}
+  initial plant.body.mass.s = 0
+  initial plant.body.mass.v = 25
+  initial plant.engine.lag.x = 31.078
+metadata {
+  "_links": {
+    "cmd": {"Dyad": {"placement": {"diagram": {"x1": 20, "x2": 120, "y1": 20, "y2": 120}}}},
+    "plant": {
+      "Dyad": {"placement": {"diagram": {"x1": 240, "x2": 340, "y1": 20, "y2": 120}}}
+    },
+    "id3": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}}
+  }
+}
+end

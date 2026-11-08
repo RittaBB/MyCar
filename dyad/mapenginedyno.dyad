@@ -1,0 +1,27 @@
+component MapEngineDyno
+  "Held engine speed [rpm]"
+  parameter rpm::Real = 3080.0
+  "Pedal before the step"
+  parameter pedal_initial::Real = 0.1034
+  "Pedal after the step"
+  parameter pedal_final::Real = 0.12
+  "Pedal step time"
+  parameter t_step::Time = 1.0
+  "Initial manifold pressure"
+  parameter p_m0::Pressure = 47829.1
+  pedal = BlockComponents.Sources.Step(height = pedal_final - pedal_initial, offset = pedal_initial, start_time = t_step) {"Dyad": {"placement": {"diagram": {"x1": 50, "y1": 250, "x2": 150, "y2": 350}}}}
+  no_booster = BlockComponents.Sources.Constant(k = 0) {"Dyad": {"placement": {"diagram": {"x1": 50, "y1": 550, "x2": 150, "y2": 650}}}}
+  engine = MapEngine() {"Dyad": {"placement": {"diagram": {"x1": 300, "y1": 300, "x2": 500, "y2": 500}}}}
+  mounts = RotationalComponents.Components.Fixed() {"Dyad": {"placement": {"diagram": {"x1": 550, "y1": 750, "x2": 650, "y2": 850}}}}
+  dyno = RotationalComponents.Sources.VelocitySource() {"Dyad": {"placement": {"diagram": {"x1": 650, "y1": 350, "x2": 750, "y2": 450}}}}
+  speed = BlockComponents.Sources.Ramp(height = (800 - rpm) * pi / 30, duration = 3.0, offset = rpm * pi / 30, start_time = 2.0)
+relations
+  connect(pedal.y, engine.pedal)
+  connect(no_booster.y, engine.mdot_bst)
+  connect(speed.y, dyno.w_ref)
+  connect(engine.spline, dyno.spline)
+  connect(engine.support, mounts.spline)
+  connect(dyno.support, mounts.spline)
+  initial dyno.phi = 0
+  initial engine.air.manifold.p = p_m0
+end
